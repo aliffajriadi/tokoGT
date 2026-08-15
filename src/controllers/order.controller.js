@@ -3,6 +3,7 @@
 const productService = require('../services/product.service');
 const orderService = require('../services/order.service');
 const paymentService = require('../services/payment.service');
+const settingService = require('../services/setting.service');
 const { validateCheckout } = require('../lib/validate');
 const logger = require('../lib/logger');
 
@@ -125,9 +126,18 @@ async function createOrder(req, res) {
  */
 async function getOrderStatus(req, res) {
   try {
+    const disableInvoice = await settingService.getSetting('disable_invoice');
+    if (disableInvoice === 'true') {
+      return res.status(403).json({ success: false, message: 'Fitur cek invoice dinonaktifkan oleh administrator.' });
+    }
+
     const { invoiceCode } = req.params;
     const order = await orderService.getOrderByInvoiceCode(invoiceCode.toUpperCase());
     if (!order) return res.status(404).json({ success: false, message: 'Order tidak ditemukan.' });
+
+    if (order.isDisabled) {
+      return res.status(403).json({ success: false, message: 'Invoice ini telah dinonaktifkan oleh administrator.' });
+    }
 
     return res.json({
       success: true,

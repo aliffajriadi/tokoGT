@@ -39,6 +39,14 @@
             <input id="discord_webhook_url" name="discord_webhook_url" type="url" class="form-input" placeholder="https://discord.com/api/webhooks/..." value="<%= discordWebhookUrl %>">
             <small style="color:var(--text-dim); display:block; margin-top:8px;">Kosongkan jika Anda tidak ingin menggunakan fitur notifikasi ke Discord.</small>
           </div>
+          <div class="form-group">
+            <label class="form-label" for="disable_invoice">Status Cek Invoice & Lacak Pesanan</label>
+            <select id="disable_invoice" name="disable_invoice" class="form-input">
+              <option value="false" <%= disableInvoice === 'false' ? 'selected' : '' %>>Aktif (User bisa cek & lacak invoice)</option>
+              <option value="true" <%= disableInvoice === 'true' ? 'selected' : '' %>>Nonaktif (User tidak bisa cek & lacak invoice)</option>
+            </select>
+            <small style="color:var(--text-dim); display:block; margin-top:8px;">Jika dinonaktifkan, user tidak bisa melihat status invoice atau melacak pesanan.</small>
+          </div>
           <div>
             <button type="submit" class="btn btn-gold">Simpan Pengaturan</button>
           </div>

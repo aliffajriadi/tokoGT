@@ -30,7 +30,7 @@ model Stock {
   product          Product  @relation(fields: [productId], references: [id])
   payload          String   // kode/akun/isi produk yang dikirim ke buyer
   isUsed           Boolean  @default(false)
-  usedInOrderItemId Int?    @unique
+  usedInOrderItemId Int?
   createdAt        DateTime @default(now())
 }
 
@@ -45,6 +45,7 @@ model Order {
   platformFee Int?      // fee dari gateway
   totalAmount Int?      // total yang harus dibayar buyer (termasuk fee)
   ipAddress   String?   // IP Address device pembeli
+  isDisabled  Boolean   @default(false)
   expiresAt   DateTime
   paidAt      DateTime?
   createdAt   DateTime  @default(now())

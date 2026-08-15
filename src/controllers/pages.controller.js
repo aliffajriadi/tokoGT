@@ -3,6 +3,7 @@
 const productService = require('../services/product.service');
 const orderService = require('../services/order.service');
 const deliveryService = require('../services/delivery.service');
+const settingService = require('../services/setting.service');
 
 async function home(req, res, next) {
   try {
@@ -53,6 +54,14 @@ async function productDetail(req, res, next) {
 
 async function checkout(req, res, next) {
   try {
+    const disableInvoice = await settingService.getSetting('disable_invoice');
+    if (disableInvoice === 'true') {
+      return res.status(403).render('pages/error', {
+        title: 'Akses Ditolak – CidGrowtopia',
+        message: 'Fitur invoice dan pengecekan pesanan dinonaktifkan oleh administrator.',
+      });
+    }
+
     // Halaman checkout dirender setelah POST /checkout sukses dan redirect dengan query params
     // atau bisa render langsung jika ada productId di query
     const { invoice } = req.query;
@@ -60,6 +69,13 @@ async function checkout(req, res, next) {
 
     const order = await orderService.getOrderByInvoiceCode(invoice);
     if (!order) return res.redirect('/produk');
+
+    if (order.isDisabled) {
+      return res.status(403).render('pages/error', {
+        title: 'Akses Ditolak – CidGrowtopia',
+        message: 'Invoice ini telah dinonaktifkan oleh administrator.',
+      });
+    }
 
     res.render('pages/checkout', {
       title: 'Pembayaran – CidGrowtopia',
@@ -72,12 +88,26 @@ async function checkout(req, res, next) {
 
 async function track(req, res, next) {
   try {
+    const disableInvoice = await settingService.getSetting('disable_invoice');
+    if (disableInvoice === 'true') {
+      return res.status(403).render('pages/error', {
+        title: 'Akses Ditolak – CidGrowtopia',
+        message: 'Fitur invoice dan pengecekan pesanan dinonaktifkan oleh administrator.',
+      });
+    }
+
     const { invoice } = req.query;
     let order = null;
     let deliveredItems = null;
 
     if (invoice) {
       order = await orderService.getOrderByInvoiceCode(invoice.toUpperCase().trim());
+      if (order && order.isDisabled) {
+        return res.status(403).render('pages/error', {
+          title: 'Akses Ditolak – CidGrowtopia',
+          message: 'Invoice ini telah dinonaktifkan oleh administrator.',
+        });
+      }
       if (order && order.status === 'DELIVERED') {
         deliveredItems = await deliveryService.getDeliveredPayloads(order.id);
       }

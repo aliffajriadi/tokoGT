@@ -136,6 +136,7 @@ async function listOrdersAdmin({ status, limit = 100, page = 1 } = {}) {
         createdAt: true,
         expiresAt: true,
         paidAt: true,
+        isDisabled: true,
         items: {
           select: {
             qty: true,

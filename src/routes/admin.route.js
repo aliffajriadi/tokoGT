@@ -31,6 +31,7 @@ router.use(ctrl.requireAdmin);
 
 router.get('/', ctrl.dashboard);
 router.get('/pesanan', ctrl.pesanan);
+router.post('/pesanan/:id/toggle-disable', ctrl.toggleDisableOrder);
 
 router.get('/produk', ctrl.produk);
 router.post('/produk', express.urlencoded({ extended: false }), ctrl.tambahProduk);

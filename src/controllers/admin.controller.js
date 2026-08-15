@@ -312,12 +312,14 @@ async function deleteStok(req, res, next) {
 async function pengaturan(req, res, next) {
   try {
     const discordWebhookUrl = await settingService.getSetting('discord_webhook_url');
+    const disableInvoice = await settingService.getSetting('disable_invoice');
     res.render('admin/pengaturan', {
       title: 'Pengaturan – Admin CidGrowtopia',
       activePage: 'pengaturan',
       success: req.query.success || null,
       error: req.query.error || null,
       discordWebhookUrl: discordWebhookUrl || '',
+      disableInvoice: disableInvoice || 'false',
     });
   } catch (err) {
     next(err);
@@ -326,9 +328,10 @@ async function pengaturan(req, res, next) {
 
 async function savePengaturan(req, res, next) {
   try {
-    const { discord_webhook_url } = req.body;
+    const { discord_webhook_url, disable_invoice } = req.body;
     await settingService.setSetting('discord_webhook_url', discord_webhook_url || '');
-    logger.info('[admin] Pengaturan webhook Discord diupdate');
+    await settingService.setSetting('disable_invoice', disable_invoice || 'false');
+    logger.info('[admin] Pengaturan webhook Discord dan Status Invoice diupdate');
     res.redirect('/admin/pengaturan?success=pengaturan-disimpan');
   } catch (err) {
     next(err);
@@ -369,8 +372,26 @@ async function changePassword(req, res, next) {
     next(err);
   }
 }
+async function toggleDisableOrder(req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const order = await prisma.order.findUnique({ where: { id }, select: { isDisabled: true } });
+    if (!order) return res.status(404).json({ success: false, message: 'Order tidak ditemukan.' });
+
+    await prisma.order.update({
+      where: { id },
+      data: { isDisabled: !order.isDisabled },
+    });
+
+    logger.info(`[admin] Toggle disable order ID ${id} to ${!order.isDisabled}`);
+    res.json({ success: true, isDisabled: !order.isDisabled });
+  } catch (err) {
+    next(err);
+  }
+}
 
 module.exports = {
+  toggleDisableOrder,
   requireAdmin,
   loginPage,
   loginPost,

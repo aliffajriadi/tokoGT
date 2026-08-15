@@ -37,13 +37,13 @@
 
     <div class="panel">
       <table>
-        <thead><tr><th>Invoice</th><th>Kontak</th><th>Produk</th><th>Total</th><th>Status</th><th>Waktu</th><th>Bayar</th></tr></thead>
+        <thead><tr><th>Invoice</th><th>Kontak</th><th>Produk</th><th>Total</th><th>Status</th><th>Waktu</th><th>Bayar</th><th>Aksi</th></tr></thead>
         <tbody>
           <% if (orders.length === 0) { %>
-            <tr><td colspan="7" style="text-align:center; color:var(--text-dim); padding:28px;">Tidak ada pesanan.</td></tr>
+            <tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding:28px;">Tidak ada pesanan.</td></tr>
           <% } %>
           <% orders.forEach(o => { %>
-            <tr>
+            <tr class="<%= o.isDisabled ? 'disabled-row' : '' %>">
               <td class="inv"><%= o.invoiceCode %></td>
               <td style="font-size:13px; color:var(--text-dim)"><%= o.contact %></td>
               <td style="font-size:13px;">
@@ -55,6 +55,11 @@
               <td><span class="status-badge <%= o.status %>"><%= statusLabel[o.status] || o.status %></span></td>
               <td style="font-size:12px; color:var(--text-dim)"><%= fmtTime(o.createdAt) %></td>
               <td style="font-size:12px; color:var(--text-dim)"><%= o.paidAt ? fmtTime(o.paidAt) : '—' %></td>
+              <td>
+                <button class="btn <%= o.isDisabled ? 'btn-gold' : 'btn-ghost' %> btn-xs" onclick="toggleDisable(this, <%= o.id %>)">
+                  <%= o.isDisabled ? 'Aktifkan' : 'Nonaktifkan' %>
+                </button>
+              </td>
             </tr>
           <% }) %>
         </tbody>
@@ -76,6 +81,34 @@
   </main>
 </div>
 <script src="https://unpkg.com/lucide@latest"></script>
-<script>lucide.createIcons();</script>
+<script>
+lucide.createIcons();
+
+async function toggleDisable(btn, orderId) {
+  if (!confirm('Apakah Anda yakin ingin mengubah status aktif/nonaktif invoice ini?')) return;
+  try {
+    btn.disabled = true;
+    const res = await fetch(`/admin/pesanan/${orderId}/toggle-disable`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      if (data.isDisabled) {
+        btn.textContent = 'Aktifkan';
+        btn.className = 'btn btn-gold btn-xs';
+        btn.closest('tr').classList.add('disabled-row');
+      } else {
+        btn.textContent = 'Nonaktifkan';
+        btn.className = 'btn btn-ghost btn-xs';
+        btn.closest('tr').classList.remove('disabled-row');
+      }
+    } else {
+      alert('Gagal mengubah status invoice: ' + (data.message || 'Error'));
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan koneksi.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
 </body>
 </html>
