@@ -10,6 +10,7 @@ const logger = require('./lib/logger');
 const { expireStaleOrders } = require('./services/order.service');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // ─── View Engine ──────────────────────────────────────────────────────────────
 app.set('view engine', 'ejs');
