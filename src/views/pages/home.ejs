@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <meta name="description" content="CidGrowtopia – Toko digital Growtopia. Beli proxy, akun, currency, dan item langka dengan pengiriman instan via QRIS.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../partials/nav') %>
+
+  <!-- Featured & Regular Products -->
+  <section class="section" style="padding-top: 48px;">
+    <div class="wrap">
+
+      <% if (featuredProducts.length > 0) { %>
+        <!-- Featured header -->
+        <div class="section-head" style="margin-bottom: 20px;">
+          <div>
+            <div class="eyebrow">Produk Unggulan</div>
+            <h2>Pilihan Terpopuler</h2>
+          </div>
+          <a href="/produk" class="btn btn-ghost">Lihat Semua →</a>
+        </div>
+        <div class="featured-products-container">
+          <% featuredProducts.forEach(product => { %>
+            <%- include('../partials/featured-product-card', { product }) %>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <% if (products.length > 0) { %>
+        <% if (featuredProducts.length > 0) { %>
+          <!-- Sub heading for regular products -->
+          <div style="margin-bottom: 20px; padding-top: 8px; border-top: 1px solid var(--border);">
+            <div class="eyebrow" style="margin-top: 24px;">Produk Lainnya</div>
+          </div>
+        <% } else { %>
+          <div class="section-head" style="margin-bottom: 20px;">
+            <div>
+              <div class="eyebrow">Semua Produk</div>
+              <h2>Pilih Produkmu</h2>
+            </div>
+            <a href="/produk" class="btn btn-ghost">Lihat Semua →</a>
+          </div>
+        <% } %>
+        <div class="product-grid">
+          <% products.slice(0, 8).forEach(product => { %>
+            <%- include('../partials/product-card', { product }) %>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <% if (featuredProducts.length === 0 && products.length === 0) { %>
+        <div class="section-head" style="margin-bottom: 20px;">
+          <div><div class="eyebrow">Produk Unggulan</div><h2>Pilihan Terpopuler</h2></div>
+          <a href="/produk" class="btn btn-ghost">Lihat Semua →</a>
+        </div>
+        <div class="empty-state">
+          <div class="icon">📦</div>
+          <p>Belum ada produk tersedia. Cek lagi nanti!</p>
+        </div>
+      <% } %>
+
+    </div>
+  </section>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">🌿 Growtopia Digital Store</div>
+      <h1>Belanja Item GT<br><span class="text-gold">Cepat, Aman, Otomatis</span></h1>
+      <p>Proxy, akun, currency, dan item langka Growtopia. Bayar QRIS → produk terkirim otomatis ke kamu.</p>
+      <div class="hero-actions">
+        <a href="/produk" class="btn btn-gold btn-lg">🛒 Lihat Semua Produk</a>
+        <a href="/lacak" class="btn btn-ghost btn-lg">🔍 Lacak Pesanan</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="wrap">
+      <div style="text-align:center; margin-bottom:40px;">
+        <div class="eyebrow">Cara Beli</div>
+        <h2>Mudah dalam 3 Langkah</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:24px;">
+        <div class="card" style="padding:28px; text-align:center;">
+          <div style="font-size:2.5rem; margin-bottom:16px;">🛍️</div>
+          <h3 class="text-gold" style="margin-bottom:8px;">1. Pilih Produk</h3>
+          <p style="font-size:13.5px; color:var(--text-dim);">Pilih produk yang kamu mau, tentukan jumlahnya, masukkan kontak WA/email/username GT.</p>
+        </div>
+        <div class="card" style="padding:28px; text-align:center;">
+          <div style="font-size:2.5rem; margin-bottom:16px;">📱</div>
+          <h3 class="text-gold" style="margin-bottom:8px;">2. Bayar QRIS</h3>
+          <p style="font-size:13.5px; color:var(--text-dim);">Scan QRIS dari aplikasi e-wallet atau mobile banking manapun. Batas waktu 10 menit.</p>
+        </div>
+        <div class="card" style="padding:28px; text-align:center;">
+          <div style="font-size:2.5rem; margin-bottom:16px;">⚡</div>
+          <h3 class="text-gold" style="margin-bottom:8px;">3. Terima Produk</h3>
+          <p style="font-size:13.5px; color:var(--text-dim);">Produk dikirim otomatis setelah pembayaran terverifikasi. Lacak pesanan kapan saja.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Track CTA -->
+  <section class="section">
+    <div class="wrap-xs" style="text-align:center;">
+      <div class="eyebrow">Sudah Bayar?</div>
+      <h2 style="margin-bottom:12px;">Lacak Pesanan Kamu</h2>
+      <p style="color:var(--text-dim); margin-bottom:28px;">Masukkan kode invoice untuk cek status & ambil produk kamu.</p>
+      <form action="/lacak" method="GET" style="display:flex; gap:10px; max-width:400px; margin:0 auto;">
+        <input id="invoiceInput" name="invoice" type="text" class="form-input" placeholder="INV-XXXXXXXX" style="flex:1;">
+        <button class="btn btn-gold" type="submit">Cek</button>
+      </form>
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>
+
+  <!-- Promo Modal -->
+  <div id="promoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; align-items:center; justify-content:center; backdrop-filter:blur(5px); padding:20px;">
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px; text-align:center; max-width:440px; width:100%; box-shadow:0 15px 40px rgba(0,0,0,0.5); position:relative;">
+      <button onclick="closePromoModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer; font-weight:700;">&times;</button>
+      
+      <div style="font-size:2.5rem; margin-bottom:12px;">📢</div>
+      <h2 style="font-size:1.4rem; color:var(--text); margin-bottom:8px; font-family:var(--font-heading);">Gabung Komunitas Kami!</h2>
+      <p style="color:var(--text-dim); font-size:13.5px; margin-bottom:24px; line-height:1.5;">Dapatkan promo terbaru, update produk, stok restock, dan informasi menarik lainnya.</p>
+      
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+        <!-- Discord Card -->
+        <a href="https://discord.gg/HBs3ykEXWY" target="_blank" class="promo-card discord-promo" style="display:flex; align-items:center; gap:16px; padding:16px; border-radius:10px; background:#5865F2; color:#fff; text-decoration:none; text-align:left; font-weight:600; transition:transform 0.2s;">
+          <svg style="width:24px; height:24px; fill:currentColor;" viewBox="0 0 127.14 96.36">
+            <path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.95,54.65,1,77.53a105.53,105.53,0,0,0,32,16.29,80.4,80.4,0,0,0,6.77-11A68.32,68.32,0,0,1,28.8,77.22c.94-.69,1.84-1.39,2.69-2.1a75.11,75.11,0,0,0,71.3,0c.85.71,1.75,1.41,2.69,2.1a67.8,67.8,0,0,1-11,5.6,79.52,79.52,0,0,0,6.76,11,105.81,105.81,0,0,0,32-16.29C129.24,48.45,123.38,25.62,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z"/>
+          </svg>
+          <div>
+            <div style="font-size:14px; font-weight:600;">Join Discord</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:400;">Dapatkan info restock & giveaway</div>
+          </div>
+        </a>
+        
+        <!-- Instagram Card -->
+        <a href="https://www.instagram.com/cid.growtopia/" target="_blank" class="promo-card instagram-promo" style="display:flex; align-items:center; gap:16px; padding:16px; border-radius:10px; background:linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); color:#fff; text-decoration:none; text-align:left; font-weight:600; transition:transform 0.2s;">
+          <svg style="width:24px; height:24px; fill:currentColor;" viewBox="0 0 24 24">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051C.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+          </svg>
+          <div>
+            <div style="font-size:14px; font-weight:600;">Follow Instagram</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.8); font-weight:400;">Follow @cid.growtopia</div>
+          </div>
+        </a>
+      </div>
+      
+      <button onclick="closePromoModal()" class="btn btn-ghost" style="width:100%; font-size:13.5px; padding:12px;">Nanti Saja</button>
+    </div>
+  </div>
+
+  <style>
+    .promo-card:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+
+  <script>
+    function closePromoModal() {
+      document.getElementById('promoModal').style.display = 'none';
+      sessionStorage.setItem('promo_shown', 'true');
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!sessionStorage.getItem('promo_shown')) {
+        setTimeout(() => {
+          const promoModal = document.getElementById('promoModal');
+          if (promoModal) promoModal.style.display = 'flex';
+        }, 1200); // 1.2s delay for a smoother premium entrance
+      }
+    });
+  </script>
+</body>
+</html>

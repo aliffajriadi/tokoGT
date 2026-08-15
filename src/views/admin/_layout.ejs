@@ -1,0 +1,53 @@
+<%
+  // Helper partial for admin sidebar shell — used by all admin pages
+  // Variables expected: activePage, title, (page-specific content in body slot)
+  const navItems = [
+    { page: 'dashboard', icon: '◆', label: 'Dashboard',  href: '/admin' },
+    { page: 'pesanan',   icon: '▤', label: 'Pesanan',    href: '/admin/pesanan' },
+    { page: 'produk',    icon: '▦', label: 'Produk',     href: '/admin/produk' },
+    { page: 'stok',      icon: '▧', label: 'Stok',       href: '/admin/stok' },
+  ];
+%>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-mark"><span></span><span></span><span></span><span></span></div>Cid<b>Growtopia</b></div>
+    <div class="nav-group">
+      <div class="nav-label">Utama</div>
+      <% navItems.forEach(n => { %>
+        <a href="<%= n.href %>" class="nav-item <%= activePage === n.page ? 'active' : '' %>">
+          <span class="ic"><%= n.icon %></span> <%= n.label %>
+        </a>
+      <% }) %>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Lainnya</div>
+      <a href="/" class="nav-item"><span class="ic">🌐</span> Lihat Toko</a>
+    </div>
+    <div class="sidebar-foot">
+      <div class="avatar">AD</div>
+      <div class="who">Admin<div class="role">Owner</div></div>
+      <form action="/admin/logout" method="POST" style="margin-left:auto;">
+        <button type="submit" style="background:none; border:1px solid var(--border); color:var(--text-dim); font-size:11px; padding:5px 9px; border-radius:6px; cursor:pointer;">Keluar</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <%- body %>
+  </main>
+</div>
+</body>
+</html>

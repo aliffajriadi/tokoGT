@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="shell">
+  <%- include('./_sidebar', { activePage }) %>
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <a href="/admin/stok" style="font-size:13px; color:var(--text-dim); text-decoration:none; display:inline-flex; align-items:center; gap:6px; margin-bottom:12px;">
+          ← Kembali ke Stok
+        </a>
+        <h1>Kelola Isi Stok: <%= product.name %></h1>
+        <p><%= stocks.length %> total item terdaftar</p>
+      </div>
+    </div>
+
+    <% if (success) { %>
+      <div class="notice notice-gem" style="margin-bottom:20px;"><b>✅ <%= success.replace(/-/g,' ') %></b></div>
+    <% } %>
+
+    <% if (error) { %>
+      <div class="notice notice-danger" style="margin-bottom:20px;"><b>⚠️ <%= error.replace(/-/g,' ') %></b></div>
+    <% } %>
+
+    <!-- Stock Entries Table -->
+    <div class="panel">
+      <div class="panel-head"><h2>Daftar Payload Stok</h2></div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 80px;">ID</th>
+            <th>Payload (Isi Stok)</th>
+            <th style="width: 150px;">Status</th>
+            <th style="width: 180px;">Tanggal Masuk</th>
+            <th style="width: 180px; text-align: right;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (stocks.length === 0) { %>
+            <tr><td colspan="5" style="text-align:center; color:var(--text-dim); padding:24px;">Belum ada item stok untuk produk ini.</td></tr>
+          <% } %>
+          <% stocks.forEach(s => { %>
+            <tr>
+              <td class="mono" style="color:var(--text-dim);">#<%= s.id %></td>
+              <td>
+                <form action="/admin/stok/detail/<%= product.id %>/edit/<%= s.id %>" method="POST" style="display:flex; gap:8px;">
+                  <input name="payload" type="text" class="form-input" value="<%= s.payload %>" style="padding: 6px 10px; font-family: var(--font-mono); font-size: 13px;" <%= s.isUsed ? 'disabled' : '' %>>
+                  <% if (!s.isUsed) { %>
+                    <button type="submit" class="btn btn-gold btn-sm" style="padding:6px 12px; font-size:12px;">Update</button>
+                  <% } %>
+                </form>
+              </td>
+              <td>
+                <span class="status-badge <%= s.isUsed ? 'EXPIRED' : 'PAID' %>">
+                  <%= s.isUsed ? 'Terpakai' : 'Tersedia' %>
+                </span>
+              </td>
+              <td style="font-size:12px; color:var(--text-dim);">
+                <%= new Date(s.createdAt).toLocaleString('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) %>
+              </td>
+              <td style="text-align: right;">
+                <form action="/admin/stok/detail/<%= product.id %>/delete/<%= s.id %>" method="POST" onsubmit="return confirm('Hapus item stok ini?')">
+                  <button type="submit" class="btn btn-danger btn-sm" style="padding: 6px 12px; font-size:12px; background:transparent; border:1px solid var(--danger); color:var(--danger);">
+                    Hapus
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

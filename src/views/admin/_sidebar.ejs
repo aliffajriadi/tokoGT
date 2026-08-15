@@ -1,0 +1,32 @@
+<aside class="sidebar">
+  <div class="logo"><div class="logo-mark"><span></span><span></span><span></span><span></span></div>Cid<b>Growtopia</b></div>
+  <div class="nav-group">
+    <div class="nav-label">Utama</div>
+    <a href="/admin" class="nav-item <%= activePage === 'dashboard' ? 'active' : '' %>">
+      <i data-lucide="layout-dashboard" style="width: 18px; height: 18px; margin-right: 6px;"></i> Dashboard
+    </a>
+    <a href="/admin/pesanan" class="nav-item <%= activePage === 'pesanan' ? 'active' : '' %>">
+      <i data-lucide="shopping-cart" style="width: 18px; height: 18px; margin-right: 6px;"></i> Pesanan
+    </a>
+    <a href="/admin/produk" class="nav-item <%= activePage === 'produk' ? 'active' : '' %>">
+      <i data-lucide="package" style="width: 18px; height: 18px; margin-right: 6px;"></i> Produk
+    </a>
+    <a href="/admin/stok" class="nav-item <%= activePage === 'stok' ? 'active' : '' %>">
+      <i data-lucide="layers" style="width: 18px; height: 18px; margin-right: 6px;"></i> Stok
+    </a>
+    <a href="/admin/pengaturan" class="nav-item <%= activePage === 'pengaturan' ? 'active' : '' %>">
+      <i data-lucide="settings" style="width: 18px; height: 18px; margin-right: 6px;"></i> Pengaturan
+    </a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">Lainnya</div>
+    <a href="/" class="nav-item"><i data-lucide="globe" style="width: 18px; height: 18px; margin-right: 6px;"></i> Lihat Toko</a>
+  </div>
+  <div class="sidebar-foot">
+    <div class="avatar">AD</div>
+    <div class="who">Admin<div class="role">Owner</div></div>
+    <form action="/admin/logout" method="POST" style="margin-left:auto;">
+      <button type="submit" style="background:none; border:1px solid var(--border); color:var(--text-dim); font-size:11px; padding:5px 9px; border-radius:6px; cursor:pointer;">Keluar</button>
+    </form>
+  </div>
+</aside>

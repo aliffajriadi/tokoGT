@@ -1,0 +1,34 @@
+<% 
+  const fmtRupiah = (n) => 'Rp ' + Number(n).toLocaleString('id-ID'); 
+  const isAvailable = product.stockCount > 0;
+%>
+<a href="/produk/<%= product.id %>" class="featured-card">
+  <div class="feat-badge">🌟 UNGGULAN</div>
+
+  <div class="feat-icon" style="overflow:hidden;">
+    <% if (product.icon && (product.icon.startsWith('http://') || product.icon.startsWith('https://') || product.icon.startsWith('/'))) { %>
+      <img src="<%= product.icon %>" style="width: 100%; height: 100%; object-fit: cover;" alt="<%= product.name %>">
+    <% } else { %>
+      <i data-lucide="<%= product.icon || 'package' %>"></i>
+    <% } %>
+  </div>
+  
+  <div class="feat-info">
+    <div class="feat-cat"><%= product.category %></div>
+    <div class="feat-name"><%= product.name %></div>
+    <div class="feat-price"><%= fmtRupiah(product.price) %></div>
+    
+    <% if (product.description) { %>
+      <p class="feat-desc"><%= product.description %></p>
+    <% } %>
+
+    <div class="feat-actions">
+      <% if (isAvailable) { %>
+        <span class="badge" style="background: var(--success-bg); color: var(--success); border: 1px solid var(--success);">Tersedia (<%= product.stockCount %>)</span>
+        <span class="btn btn-gold btn-sm" style="pointer-events:none;">Beli Sekarang</span>
+      <% } else { %>
+        <span class="badge" style="background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger);">Habis Terjual</span>
+      <% } %>
+    </div>
+  </div>
+</a>

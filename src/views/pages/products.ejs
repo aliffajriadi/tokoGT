@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <meta name="description" content="Katalog produk digital Growtopia – proxy, akun, currency, dan item langka. Pengiriman otomatis via QRIS.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../partials/nav') %>
+
+  <section class="section">
+    <div class="wrap">
+      <div style="margin-bottom:32px;">
+        <div class="eyebrow">Katalog</div>
+        <h1>Semua Produk</h1>
+        <p style="color:var(--text-dim); margin-top:6px; font-size:14px;"><%= products.length %> produk tersedia</p>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-tabs">
+        <a href="/produk" class="filter-tab <%= !activeCategory ? 'active' : '' %>">Semua</a>
+        <% categories.forEach(cat => { %>
+          <a href="/produk?cat=<%= encodeURIComponent(cat) %>"
+             class="filter-tab <%= activeCategory === cat ? 'active' : '' %>">
+            <%= cat %>
+          </a>
+        <% }) %>
+      </div>
+
+      <!-- Product Grid -->
+      <% if (products.length === 0) { %>
+        <div class="empty-state">
+          <div class="icon"><i data-lucide="package" style="width: 1em; height: 1em;"></i></div>
+          <p>Tidak ada produk di kategori ini.</p>
+          <a href="/produk" class="btn btn-gold mt-4" style="margin-top:16px;">Lihat Semua</a>
+        </div>
+      <% } else { %>
+        <div class="product-grid">
+          <% products.forEach(product => { %>
+            <%- include('../partials/product-card', { product }) %>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<%
+  const fmtRupiah = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
+%>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="shell">
+  <%- include('./_sidebar', { activePage }) %>
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Stok Produk</h1>
+        <p>Kelola dan restock inventory</p>
+      </div>
+    </div>
+
+    <% if (success) { %>
+      <div class="notice notice-gem" style="margin-bottom:20px;"><b>✅ <%= success.replace(/-/g,' ') %></b></div>
+    <% } %>
+
+    <div class="panel">
+      <table>
+        <thead><tr><th>Produk</th><th>Kategori</th><th>Harga</th><th>Tersedia / Total</th><th></th></tr></thead>
+        <tbody>
+          <% if (stockSummary.length === 0) { %>
+            <tr><td colspan="5" style="text-align:center; color:var(--text-dim); padding:24px;">Belum ada data stok.</td></tr>
+          <% } %>
+          <% stockSummary.forEach(s => { %>
+            <%
+              const avail = Number(s.available);
+              const tot = Number(s.total);
+              const pct = tot > 0 ? Math.round((avail/tot)*100) : 0;
+              const cls = avail === 0 ? 'empty' : avail < 5 ? 'low' : '';
+            %>
+            <tr>
+              <td style="font-weight:600;"><%= s.name %></td>
+              <td style="color:var(--text-dim); font-size:13px;"><%= s.category %></td>
+              <td class="mono"><%= fmtRupiah(s.price) %></td>
+              <td>
+                <span class="stock-bar <%= cls %>"><i style="width:<%= pct %>%"></i></span>
+                <span class="mono"><%= avail %> / <%= tot %></span>
+                <% if (avail < 5) { %>
+                  <span class="status-badge PENDING" style="margin-left:6px;">Menipis</span>
+                <% } %>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-ghost restock-btn"
+                  data-id="<%= s.id %>"
+                  data-name="<%= encodeURIComponent(s.name) %>">
+                  + Restock
+                </button>
+                <a href="/admin/stok/detail/<%= s.id %>" class="btn btn-sm btn-ghost" style="margin-left: 6px;">
+                  ✏️ Kelola Isi
+                </a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Restock Modal -->
+    <div id="restockModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center;">
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:28px; width:100%; max-width:440px; margin:0 24px;">
+        <h2 style="font-size:16px; margin-bottom:4px;">Restock Produk</h2>
+        <p id="restockProductName" style="color:var(--gem); font-size:13px; margin-bottom:20px;"></p>
+        <form id="restockForm" method="POST">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label">Payload Stok</label>
+            <textarea id="payloads" name="payloads" class="form-textarea" style="height:140px; font-family:var(--font-mono); font-size:12.5px;"
+              placeholder="Satu item per baris:&#10;kode_atau_akun_1&#10;kode_atau_akun_2&#10;..."></textarea>
+            <span class="form-hint">Setiap baris = 1 item stok yang akan dikirim ke buyer.</span>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="submit" class="btn btn-gold">Simpan Stok</button>
+            <button type="button" class="btn btn-ghost" onclick="closeRestock()">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+// Use event delegation so product names with apostrophes/quotes don't break JS
+document.querySelectorAll('.restock-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const id = this.dataset.id;
+    const name = decodeURIComponent(this.dataset.name);
+    openRestock(id, name);
+  });
+});
+
+function openRestock(productId, name) {
+  document.getElementById('restockProductName').textContent = name;
+  document.getElementById('restockForm').action = `/admin/stok/${productId}/restock`;
+  document.getElementById('payloads').value = '';
+  const modal = document.getElementById('restockModal');
+  modal.style.display = 'flex';
+}
+function closeRestock() {
+  document.getElementById('restockModal').style.display = 'none';
+}
+document.getElementById('restockModal').addEventListener('click', function(e) {
+  if (e.target === this) closeRestock();
+});
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

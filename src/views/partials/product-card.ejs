@@ -1,0 +1,23 @@
+<%
+  const stockCls = product.stockCount === 0 ? 'empty' : product.stockCount < 5 ? 'low' : 'available';
+  const stockText = product.stockCount === 0 ? 'Habis' : product.stockCount < 5 ? `Sisa ${product.stockCount}` : 'Tersedia';
+  const fmtPrice = (n) => 'Rp ' + n.toLocaleString('id-ID');
+%>
+<a href="/produk/<%= product.id %>" class="product-card">
+  <div class="product-icon" style="overflow:hidden;">
+    <% if (product.icon && (product.icon.startsWith('http://') || product.icon.startsWith('https://') || product.icon.startsWith('/'))) { %>
+      <img src="<%= product.icon %>" style="width: 100%; height: 100%; object-fit: cover;" alt="<%= product.name %>">
+    <% } else { %>
+      <i data-lucide="<%= product.icon || 'package' %>" style="width: 1em; height: 1em;"></i>
+    <% } %>
+  </div>
+  <div class="product-category"><%= product.category %></div>
+  <div class="product-name"><%= product.name %></div>
+  <% if (product.description) { %>
+    <div class="product-desc"><%= product.description %></div>
+  <% } %>
+  <div class="product-footer">
+    <span class="product-price"><%= fmtPrice(product.price) %></span>
+    <span class="stock-badge <%= stockCls %>"><%= stockText %></span>
+  </div>
+</a>

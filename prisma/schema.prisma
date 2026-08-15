@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String
+  price       Int      // dalam rupiah, integer — jangan pakai Float untuk uang
+  description String?
+  icon        String?  // emoji/slug icon, bukan upload file
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  stocks      Stock[]
+  orderItems  OrderItem[]
+}
+
+model Stock {
+  id               Int      @id @default(autoincrement())
+  productId        Int
+  product          Product  @relation(fields: [productId], references: [id])
+  payload          String   // kode/akun/isi produk yang dikirim ke buyer
+  isUsed           Boolean  @default(false)
+  usedInOrderItemId Int?    @unique
+  createdAt        DateTime @default(now())
+}
+
+model Order {
+  id          Int       @id @default(autoincrement())
+  invoiceCode String    @unique
+  contact     String    // WA/email/username GT buyer
+  totalPrice  Int
+  status      String    @default("PENDING") // PENDING | PAID | DELIVERED | EXPIRED | FAILED | REFUNDED
+  qrisPayload String?
+  providerRef String?   // ID invoice dari provider payment
+  platformFee Int?      // fee dari gateway
+  totalAmount Int?      // total yang harus dibayar buyer (termasuk fee)
+  ipAddress   String?   // IP Address device pembeli
+  expiresAt   DateTime
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Int
+  priceEach Int
+  stockId   Int?    // diisi setelah delivery
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}

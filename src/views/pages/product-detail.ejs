@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <meta name="description" content="<%= product.description || product.name + ' – CidGrowtopia Growtopia Store' %>">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../partials/nav') %>
+
+  <section class="section">
+    <div class="wrap-sm">
+      <a href="/produk" style="font-size:13px; color:var(--text-dim); display:inline-flex; align-items:center; gap:6px; margin-bottom:28px;">
+        ← Kembali ke Produk
+      </a>
+
+      <div class="product-detail-grid">
+
+        <!-- Produk Info -->
+        <div>
+          <div class="product-icon" style="width:72px; height:72px; font-size:3rem; border-radius:16px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; margin-bottom:20px; overflow:hidden;">
+            <% if (product.icon && (product.icon.startsWith('http://') || product.icon.startsWith('https://') || product.icon.startsWith('/'))) { %>
+              <img src="<%= product.icon %>" style="width: 100%; height: 100%; object-fit: cover;" alt="<%= product.name %>">
+            <% } else { %>
+              <i data-lucide="<%= product.icon || 'package' %>" style="width: 1em; height: 1em;"></i>
+            <% } %>
+          </div>
+          <div class="eyebrow" style="margin-bottom:8px;"><%= product.category %></div>
+          <h1 style="font-size:1.7rem; margin-bottom:12px;"><%= product.name %></h1>
+          <% if (product.description) { %>
+            <p style="color:var(--text-dim); line-height:1.7; margin-bottom:20px;"><%= product.description %></p>
+          <% } %>
+          <div style="display:flex; align-items:center; gap:16px;">
+            <span class="product-price" style="font-size:1.5rem;"><%= 'Rp ' + product.price.toLocaleString('id-ID') %></span>
+            <%
+              const stockCls = product.stockCount === 0 ? 'empty' : product.stockCount < 5 ? 'low' : 'available';
+              const stockText = product.stockCount === 0 ? 'Stok Habis' : product.stockCount < 5 ? `Sisa ${product.stockCount} item` : `${product.stockCount} tersedia`;
+            %>
+            <span class="stock-badge <%= stockCls %>"><%= stockText %></span>
+          </div>
+        </div>
+
+        <!-- Form Beli -->
+        <div class="panel" style="padding:24px;">
+          <% if (product.stockCount === 0) { %>
+            <div class="notice notice-danger" style="margin-bottom:16px;">
+              Stok habis. Hubungi admin untuk info restock.
+            </div>
+          <% } %>
+
+          <div id="checkoutError" class="notice notice-danger" style="display:none; margin-bottom:16px;"></div>
+          <div id="checkoutLoading" style="display:none; text-align:center; padding:20px; color:var(--text-dim);">
+            Memproses pesanan...
+          </div>
+
+          <form id="checkoutForm" <%= product.stockCount === 0 ? 'style="opacity:.5; pointer-events:none;"' : '' %>>
+            <input type="hidden" id="productId" value="<%= product.id %>">
+            <div class="form-group" style="margin-bottom:20px;">
+              <label class="form-label" for="qty">Jumlah</label>
+              <input id="qty" type="number" class="form-input" min="1" max="<%= Math.min(product.stockCount, 100) %>" value="1">
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <span style="font-size:13px; color:var(--text-dim);">Total</span>
+              <span class="mono text-gold" id="totalDisplay" style="font-size:1.1rem; font-weight:700;">
+                <%= 'Rp ' + product.price.toLocaleString('id-ID') %>
+              </span>
+            </div>
+            <button id="submitBtn" type="submit" class="btn btn-gold w-full btn-lg" <%= product.stockCount === 0 ? 'disabled' : '' %>>
+              Beli & Bayar QRIS
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>
+
+  <script>
+    const priceEach = <%= product.price %>;
+    const maxQty = <%= Math.min(product.stockCount, 100) %>;
+
+    const qtyEl = document.getElementById('qty');
+    const totalEl = document.getElementById('totalDisplay');
+    qtyEl.addEventListener('input', () => {
+      const qty = Math.max(1, Math.min(parseInt(qtyEl.value) || 1, maxQty));
+      qtyEl.value = qty;
+      totalEl.textContent = 'Rp ' + (priceEach * qty).toLocaleString('id-ID');
+    });
+
+    document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const qty = parseInt(qtyEl.value, 10);
+      const errorEl = document.getElementById('checkoutError');
+      const loadingEl = document.getElementById('checkoutLoading');
+      const submitBtn = document.getElementById('submitBtn');
+
+      errorEl.style.display = 'none';
+      loadingEl.style.display = 'block';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: [{ productId: parseInt(document.getElementById('productId').value, 10), qty }],
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          if (data.existingInvoice) {
+            errorEl.textContent = (data.errors || []).join(' ') + ' Mengalihkan Anda...';
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+              window.location.href = '/checkout?invoice=' + data.existingInvoice;
+            }, 1500);
+            return;
+          }
+          errorEl.textContent = (data.errors || ['Terjadi kesalahan.']).join(' ');
+          errorEl.style.display = 'block';
+          loadingEl.style.display = 'none';
+          submitBtn.disabled = false;
+          return;
+        }
+        // Redirect ke halaman checkout (QRIS)
+        window.location.href = '/checkout?invoice=' + data.data.invoiceCode;
+      } catch (err) {
+        errorEl.textContent = 'Gagal terhubung ke server. Coba lagi.';
+        errorEl.style.display = 'block';
+        loadingEl.style.display = 'none';
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

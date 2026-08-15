@@ -1,0 +1,115 @@
+<%
+  const fmtRupiah = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
+  const fmtTime = (d) => new Date(d).toLocaleString('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+  const statusLabel = { PENDING:'Pending', PAID:'Dibayar', DELIVERED:'Terkirim', EXPIRED:'Kadaluarsa', FAILED:'Gagal', REFUNDED:'Dikembalikan' };
+
+  const today = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+%>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="shell">
+  <%- include('./_sidebar', { activePage }) %>
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Dashboard</h1>
+        <p>Ringkasan toko — <%= today %></p>
+      </div>
+      <div class="top-actions">
+        <a href="/admin/produk" class="btn btn-gold">+ Tambah Produk</a>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="k">Penjualan Hari Ini</div>
+        <div class="v"><%= fmtRupiah(stats.todaySales) %></div>
+        <div class="delta up">↑ otomatis terkirim</div>
+      </div>
+      <div class="stat-card">
+        <div class="k">Pesanan Pending</div>
+        <div class="v"><%= stats.pendingCount %></div>
+        <div class="delta warn">Menunggu pembayaran</div>
+      </div>
+      <div class="stat-card">
+        <div class="k">Pesanan Terkirim Hari Ini</div>
+        <div class="v"><%= stats.deliveredCount %></div>
+        <div class="delta up">↑ terkirim otomatis</div>
+      </div>
+      <div class="stat-card">
+        <div class="k">Stok Menipis (&lt;5)</div>
+        <div class="v"><%= stats.lowStockCount %></div>
+        <div class="delta down">Perlu restock</div>
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Pesanan Terbaru</h2>
+        <a href="/admin/pesanan" class="btn btn-ghost btn-sm">Lihat Semua</a>
+      </div>
+      <table>
+        <thead><tr><th>Invoice</th><th>Kontak</th><th>Produk</th><th>Total</th><th>Status</th><th>Waktu</th></tr></thead>
+        <tbody>
+          <% if (recentOrders.length === 0) { %>
+            <tr><td colspan="6" style="text-align:center; color:var(--text-dim); padding:24px;">Belum ada pesanan.</td></tr>
+          <% } %>
+          <% recentOrders.forEach(o => { %>
+            <tr>
+              <td class="inv"><%= o.invoiceCode %></td>
+              <td style="color:var(--text-dim); font-size:13px;"><%= o.contact %></td>
+              <td style="font-size:13px;"><%= o.items.map(i => i.product.name + (i.qty > 1 ? ' ×'+i.qty : '')).join(', ') %></td>
+              <td class="mono"><%= fmtRupiah(o.totalPrice) %></td>
+              <td><span class="status-badge <%= o.status %>"><%= statusLabel[o.status] || o.status %></span></td>
+              <td style="color:var(--text-dim); font-size:12.5px;"><%= fmtTime(o.createdAt) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Low Stock Warning -->
+    <% if (stats.lowStockProducts && stats.lowStockProducts.length > 0) { %>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>⚠️ Stok Menipis</h2>
+        <a href="/admin/stok" class="btn btn-ghost btn-sm">Kelola Stok</a>
+      </div>
+      <table>
+        <thead><tr><th>Produk</th><th>Sisa Stok</th><th></th></tr></thead>
+        <tbody>
+          <% stats.lowStockProducts.forEach(p => { %>
+            <tr>
+              <td><%= p.name %></td>
+              <td>
+                <span class="stock-bar <%= p.available == 0 ? 'empty' : 'low' %>">
+                  <i style="width:<%= Math.min(100, (Number(p.available)/5)*100) %>%"></i>
+                </span>
+                <span class="mono"><%= p.available %></span>
+              </td>
+              <td class="row-actions">
+                <a href="/admin/stok" class="btn btn-sm btn-ghost">Restock</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </main>
+</div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

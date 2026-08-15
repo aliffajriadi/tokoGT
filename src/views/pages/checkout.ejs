@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../partials/nav') %>
+
+  <section class="section">
+    <div class="wrap-xs">
+      <% if (!order || order.status === 'EXPIRED' || order.status === 'FAILED') { %>
+        <div style="text-align:center; padding:60px 0;">
+          <div style="font-size:3rem; margin-bottom:16px;">⚠️</div>
+          <h2>Pesanan Tidak Ditemukan atau Kadaluarsa</h2>
+          <p style="color:var(--text-dim); margin-top:8px;">Kode invoice salah atau sudah lewat waktu bayar.</p>
+          <a href="/produk" class="btn btn-gold mt-4" style="margin-top:24px;">Belanja Lagi</a>
+        </div>
+      <% } else { %>
+
+        <div style="text-align:center; margin-bottom:32px;">
+          <div class="eyebrow">Selesaikan Pembayaran</div>
+          <h1 style="font-size:1.6rem; margin:8px 0;">Bayar Sebelum Waktu Habis</h1>
+          <p style="color:var(--text-dim); font-size:13.5px;">Scan QRIS dari e-wallet atau mobile banking kamu.</p>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="panel" style="margin-bottom:20px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <span class="eyebrow">Invoice</span>
+            <span class="invoice-code"><%= order.invoiceCode %></span>
+          </div>
+          <% order.items.forEach(item => { %>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
+              <span style="font-size:13.5px;"><%= item.product.name %> × <%= item.qty %></span>
+              <span class="mono" style="font-size:13px; color:var(--text-dim);">Rp <%= (item.priceEach * item.qty).toLocaleString('id-ID') %></span>
+            </div>
+          <% }) %>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0 6px; margin-top: 8px;">
+            <span style="font-size:13.5px; color:var(--text-dim);">Total Biaya Produk</span>
+            <span class="mono" style="font-size:13.5px; color:var(--text-dim);">Rp <%= order.totalPrice.toLocaleString('id-ID') %></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0 12px; border-bottom:1px dashed var(--border);">
+            <span style="font-size:13.5px; color:var(--text-dim);">Biaya Admin</span>
+            <span class="mono" style="font-size:13.5px; color:var(--text-dim);">Rp <%= (order.platformFee || 0).toLocaleString('id-ID') %></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0 0;">
+            <span style="font-weight:700;">Total Pembayaran</span>
+            <span class="mono text-gold" style="font-size:1.15rem; font-weight:700;">Rp <%= (order.totalAmount || order.totalPrice).toLocaleString('id-ID') %></span>
+          </div>
+        </div>
+
+        <!-- QRIS + Countdown -->
+        <div class="qris-box" style="margin-bottom:20px;">
+          <% if (order.qrisPayload) { %>
+            <p style="font-size:12.5px; color:var(--text-dim); margin-bottom:8px;">Scan QR Code di bawah:</p>
+            <div class="qris-img">
+              <%
+                let qrSrc = order.qrisPayload;
+                if (!qrSrc.startsWith('http') && !qrSrc.startsWith('data:')) {
+                  qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(qrSrc);
+                }
+              %>
+              <img src="<%= qrSrc %>" alt="QRIS Code" onerror="this.parentElement.innerHTML='<span>QR tidak tersedia</span>'">
+            </div>
+          <% } else { %>
+            <div class="notice notice-gold" style="margin-bottom:16px;">
+              <b>QRIS sedang diproses.</b> Refresh halaman dalam beberapa detik jika belum muncul.
+            </div>
+          <% } %>
+
+          <div style="margin:16px 0 8px;">
+            <div style="font-size:12.5px; color:var(--text-dim); margin-bottom:6px;">Waktu tersisa</div>
+            <div class="countdown" id="countdown">--:--</div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <div style="font-size:12.5px; color:var(--text-dim); margin-bottom:8px;">Status Pembayaran</div>
+            <span class="status-badge PENDING" id="orderStatus">Menunggu Pembayaran</span>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="notice notice-gem">
+          <b>💡 Tips:</b> Halaman ini otomatis memperbarui status pembayaran setiap beberapa detik. Jangan tutup halaman sebelum mendapat konfirmasi.
+        </div>
+
+        <div style="text-align:center; margin-top:20px;">
+          <p style="font-size:12.5px; color:var(--text-muted);">
+            Kode invoice: <span class="mono text-gem"><%= order.invoiceCode %></span>
+            — simpan kode ini untuk lacak pesanan.
+          </p>
+          <a href="/pesanan-saya" style="font-size:13px; color:var(--gem); margin-top:8px; display:inline-block;">
+            Lihat Pesanan Saya →
+          </a>
+        <!-- Success Modal Popup -->
+        <div id="paymentSuccessModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+          <div style="background:var(--surface); border:2px solid var(--success); border-radius:12px; padding:32px; text-align:center; max-width:400px; width:90vw; box-shadow:0 0 30px rgba(0,255,102,0.25);">
+            <div style="font-size:4rem; margin-bottom:16px; animation: bounce 0.6s infinite alternate;">🎉</div>
+            <h2 style="font-size:1.5rem; color:var(--success); margin-bottom:12px; font-family:var(--font-heading);">Pembayaran Berhasil!</h2>
+            <p style="color:var(--text); font-size:14px; line-height:1.6; margin-bottom:24px;">Terima kasih atas pembelian Anda. Produk Anda telah berhasil dikirim otomatis!</p>
+            <div style="font-size:12px; color:var(--text-dim);">Mengalihkan ke halaman lacak...</div>
+          </div>
+        </div>
+
+        <style>
+        @keyframes bounce {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(-12px); }
+        }
+        </style>
+
+      <% } %>
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>
+
+  <% if (order && order.status !== 'EXPIRED' && order.status !== 'FAILED') { %>
+  <script src="/js/checkout.js"></script>
+  <script>
+    initCheckoutPage({
+      invoiceCode: '<%= order.invoiceCode %>',
+      totalPrice: <%= order.totalPrice %>,
+      expiresAt: '<%= order.expiresAt.toISOString() %>',
+      productName: '<%= order.items.map(i => i.product.name).join(", ").replace(/'/g, "\\'") %>',
+    });
+  </script>
+  <% } %>
+</body>
+</html>

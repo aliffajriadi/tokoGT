@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="shell">
+  <%- include('./_sidebar', { activePage }) %>
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Pengaturan</h1>
+        <p>Konfigurasi integrasi pihak ketiga</p>
+      </div>
+    </div>
+
+    <% if (success) { %>
+      <div class="notice notice-gem" style="margin-bottom:20px;"><b>✅ <%= success.replace(/-/g,' ') %></b></div>
+    <% } %>
+
+    <% if (error) { %>
+      <div class="notice notice-danger" style="margin-bottom:20px;"><b>⚠️ <%= error.replace(/-/g,' ') %></b></div>
+    <% } %>
+
+    <div class="panel" style="margin-bottom:24px;">
+      <div class="panel-head"><h2>Discord Webhook</h2></div>
+      <div class="panel-body">
+        <p style="color:var(--text-dim); margin-bottom:20px;">
+          Setiap kali ada pembelian berhasil (pembayaran telah diterima), bot akan mengirimkan notifikasi rincian transaksi ke channel Discord Anda secara otomatis.
+        </p>
+        <form action="/admin/pengaturan" method="POST" style="display:flex; flex-direction:column; gap:16px; max-width: 600px;">
+          <div class="form-group">
+            <label class="form-label" for="discord_webhook_url">URL Webhook Discord</label>
+            <input id="discord_webhook_url" name="discord_webhook_url" type="url" class="form-input" placeholder="https://discord.com/api/webhooks/..." value="<%= discordWebhookUrl %>">
+            <small style="color:var(--text-dim); display:block; margin-top:8px;">Kosongkan jika Anda tidak ingin menggunakan fitur notifikasi ke Discord.</small>
+          </div>
+          <div>
+            <button type="submit" class="btn btn-gold">Simpan Pengaturan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Keamanan</h2></div>
+      <div class="panel-body">
+        <p style="color:var(--text-dim); margin-bottom:20px;">
+          Ganti password login Admin CidGrowtopia Anda.
+        </p>
+        <form action="/admin/pengaturan/password" method="POST" style="display:flex; flex-direction:column; gap:16px; max-width: 600px;">
+          <div class="form-group">
+            <label class="form-label" for="new_password">Password Baru</label>
+            <input id="new_password" name="new_password" type="password" class="form-input" placeholder="Minimal 5 karakter" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="confirm_password">Konfirmasi Password Baru</label>
+            <input id="confirm_password" name="confirm_password" type="password" class="form-input" placeholder="Ulangi password baru" required>
+          </div>
+          <div>
+            <button type="submit" class="btn btn-gold">Ganti Password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </main>
+</div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

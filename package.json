@@ -1,0 +1,26 @@
+{
+  "name": "blokmarket",
+  "version": "1.0.0",
+  "description": "BlokMarket – Growtopia Digital Storefront",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.1",
+    "multer": "^2.2.0",
+    "prisma": "^5.22.0",
+    "winston": "^3.14.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,348 @@
+<%
+  const fmtRupiah = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
+%>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="shell">
+  <%- include('./_sidebar', { activePage }) %>
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Produk</h1>
+        <p><%= products.length %> produk terdaftar</p>
+      </div>
+    </div>
+
+    <% if (success) { %>
+      <div class="notice notice-gem" style="margin-bottom:20px;"><b>✅ <%= success.replace(/-/g,' ') %></b></div>
+    <% } %>
+
+    <!-- Add Product Form -->
+    <div class="panel" style="margin-bottom:24px;">
+      <div class="panel-head"><h2>+ Tambah Produk Baru</h2></div>
+      <div class="panel-body">
+        <form action="/admin/produk" method="POST" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="form-group">
+            <label class="form-label" for="name">Nama Produk *</label>
+            <input id="name" name="name" type="text" class="form-input" placeholder="SOCKS5 Proxy Private" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="category">Kategori *</label>
+            <input id="category" name="category" type="text" class="form-input" placeholder="Proxy / Akun / Currency / Item">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="price">Harga (Rp) *</label>
+            <input id="price" name="price" type="number" class="form-input" placeholder="25000" min="1" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="icon">Icon (lucide)</label>
+            <input id="icon" name="icon" type="text" class="form-input" placeholder="package" maxlength="24">
+            <small style="color:var(--text-dim); margin-top:4px; display:block;">Cek nama icon di <a href="https://lucide.dev/icons" target="_blank" style="color:var(--gem);">lucide.dev/icons</a></small>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label" for="description">Deskripsi</label>
+            <textarea id="description" name="description" class="form-textarea" placeholder="Keterangan produk..."></textarea>
+          </div>
+          <div style="grid-column:1/-1;">
+            <button type="submit" class="btn btn-gold">Tambah Produk</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Product List -->
+    <div class="panel">
+      <div class="panel-head"><h2>Daftar Produk</h2></div>
+      <table>
+        <thead><tr><th>Icon</th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th><th>Unggulan</th><th>Aksi</th></tr></thead>
+        <tbody>
+          <% if (products.length === 0) { %>
+            <tr><td colspan="8" style="text-align:center; color:var(--text-dim); padding:24px;">Belum ada produk.</td></tr>
+          <% } %>
+          <% products.forEach(p => { %>
+            <tr id="product-row-<%= p.id %>">
+              <td>
+                <span class="prod-icon-wrap" style="display:inline-flex; align-items:center; gap:8px;">
+                  <% if (p.icon && (p.icon.startsWith('http://') || p.icon.startsWith('https://') || p.icon.startsWith('/'))) { %>
+                    <img id="icon-<%= p.id %>" src="<%= p.icon %>" style="width: 1.4em; height: 1.4em; object-fit: cover; border-radius: 4px;" alt="">
+                  <% } else { %>
+                    <i id="icon-<%= p.id %>" data-lucide="<%= p.icon || 'package' %>" style="width: 1.4em; height: 1.4em; color: var(--gold);"></i>
+                  <% } %>
+                  <span style="color:var(--text-muted); font-family:var(--font-mono); font-size:11px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="iconlabel-<%= p.id %>"><%= p.icon || 'package' %></span>
+                </span>
+              </td>
+              <td style="font-weight:600;"><%= p.name %></td>
+              <td style="color:var(--text-dim); font-size:13px;"><%= p.category %></td>
+              <td class="mono"><%= fmtRupiah(p.price) %></td>
+              <td>
+                <span class="mono"><%= p.stockCount %></span>
+                <a href="/admin/stok" style="font-size:11px; color:var(--gem); margin-left:8px;">restock</a>
+              </td>
+              <td>
+                <span style="font-size:12px; font-weight:700; color:<%= p.isActive ? 'var(--success)' : 'var(--danger)' %>">
+                  <%= p.isActive ? 'Aktif' : 'Nonaktif' %>
+                </span>
+              </td>
+              <td>
+                <span class="featured-badge" style="font-size:12px; font-weight:700; color:<%= p.isFeatured ? 'var(--gold)' : 'var(--text-dim)' %>">
+                  <%= p.isFeatured ? 'Ya' : 'Tidak' %>
+                </span>
+              </td>
+              <td class="row-actions" style="white-space:nowrap;">
+                <button onclick="toggleStatus(<%= p.id %>, this)"
+                  data-active="<%= p.isActive %>"
+                  style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer;">
+                  <%= p.isActive ? 'Nonaktifkan' : 'Aktifkan' %>
+                </button>
+                <button onclick="toggleFeatured(<%= p.id %>, this)"
+                  data-featured="<%= p.isFeatured %>"
+                  style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer; margin-top:4px;">
+                  <%= p.isFeatured ? 'Batal Unggulan' : 'Jadikan Unggulan' %>
+                </button>
+                <button onclick="openIconModal(<%= p.id %>, '<%= (p.icon || 'package').replace(/'/g, '') %>')"
+                  style="background:var(--surface-2); border:1px solid var(--gem); color:var(--gem); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer; margin-top:4px;">
+                  ✏️ Edit Icon
+                </button>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Edit Icon Modal -->
+<div id="iconModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999; align-items:center; justify-content:center;">
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:28px; width:420px; max-width:90vw; position:relative;">
+    <div style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:16px; color:var(--gold);">✏️ Edit Gambar / Icon Produk</div>
+    
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">Upload File Gambar</label>
+      <input id="modalFileInput" type="file" accept="image/*" class="form-input" style="padding: 8px;">
+      <small style="color:var(--text-dim); display:block; margin-top:4px;">Upload gambar dari komputer Anda.</small>
+    </div>
+
+    <div style="text-align:center; margin:10px 0; color:var(--text-muted); font-size:11px; font-weight:700; font-family:var(--font-heading);">— ATAU —</div>
+
+    <div class="form-group" style="margin-bottom:16px;">
+      <label class="form-label">Nama Icon (Lucide) / URL Gambar</label>
+      <input id="modalIconInput" type="text" class="form-input" placeholder="contoh: package, zap, star atau https://..." maxlength="255">
+      <small style="color:var(--text-dim); margin-top:6px; display:block;">
+        Preview: <i id="iconPreview" data-lucide="package" style="display:inline; width:1.2em; height:1.2em; vertical-align:middle; color:var(--gold);"></i>
+        &nbsp;&nbsp;<a href="https://lucide.dev/icons" target="_blank" style="color:var(--gem); font-size:12px;">Lihat semua icon →</a>
+      </small>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+      <button onclick="closeIconModal()" style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px;">Batal</button>
+      <button id="saveIconBtn" onclick="saveIcon()" class="btn btn-gold btn-sm">Simpan Icon</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentIconProductId = null;
+
+// Toggle active status
+async function toggleStatus(id, btn) {
+  try {
+    const res = await fetch(`/admin/produk/${id}/toggle`, { method: 'POST' });
+    const { success, isActive } = await res.json();
+    if (success) {
+      btn.textContent = isActive ? 'Nonaktifkan' : 'Aktifkan';
+      btn.dataset.active = isActive;
+      const row = btn.closest('tr');
+      const statusCell = row.querySelector('td:nth-child(6) span');
+      if (statusCell) {
+        statusCell.textContent = isActive ? 'Aktif' : 'Nonaktif';
+        statusCell.style.color = isActive ? 'var(--success)' : 'var(--danger)';
+      }
+    }
+  } catch(e) { alert('Gagal update status.'); }
+}
+
+// Toggle featured
+async function toggleFeatured(id, btn) {
+  try {
+    const res = await fetch(`/admin/produk/${id}/feature`, { method: 'POST' });
+    const json = await res.json();
+    if (json.success) {
+      const isFeatured = json.isFeatured;
+      btn.textContent = isFeatured ? 'Batal Unggulan' : 'Jadikan Unggulan';
+      btn.dataset.featured = isFeatured;
+      const row = btn.closest('tr');
+      const badgeCell = row.querySelector('td:nth-child(7) span');
+      if (badgeCell) {
+        badgeCell.textContent = isFeatured ? 'Ya' : 'Tidak';
+        badgeCell.style.color = isFeatured ? 'var(--gold)' : 'var(--text-dim)';
+      }
+    } else {
+      alert('Gagal: ' + (json.message || 'Error server'));
+    }
+  } catch(e) { alert('Gagal update status unggulan.'); }
+}
+
+// Icon modal
+function openIconModal(id, currentIcon) {
+  currentIconProductId = id;
+  const fileInput = document.getElementById('modalFileInput');
+  if (fileInput) fileInput.value = '';
+  document.getElementById('modalIconInput').value = currentIcon;
+  updateIconPreview(currentIcon);
+  const modal = document.getElementById('iconModal');
+  modal.style.display = 'flex';
+}
+
+function closeIconModal() {
+  document.getElementById('iconModal').style.display = 'none';
+  currentIconProductId = null;
+}
+
+function updateIconPreview(iconName) {
+  const preview = document.getElementById('iconPreview');
+  const isUrl = iconName && (iconName.startsWith('http://') || iconName.startsWith('https://') || iconName.startsWith('/'));
+  
+  if (isUrl) {
+    if (preview.tagName !== 'IMG') {
+      const newImg = document.createElement('img');
+      newImg.id = 'iconPreview';
+      newImg.style.display = 'inline-block';
+      newImg.style.width = '1.2em';
+      newImg.style.height = '1.2em';
+      newImg.style.verticalAlign = 'middle';
+      newImg.style.objectFit = 'cover';
+      newImg.style.borderRadius = '4px';
+      preview.replaceWith(newImg);
+      newImg.src = iconName;
+    } else {
+      preview.src = iconName;
+    }
+  } else {
+    if (preview.tagName !== 'I') {
+      const newIcon = document.createElement('i');
+      newIcon.id = 'iconPreview';
+      newIcon.style.display = 'inline';
+      newIcon.style.width = '1.2em';
+      newIcon.style.height = '1.2em';
+      newIcon.style.verticalAlign = 'middle';
+      newIcon.style.color = 'var(--gold)';
+      preview.replaceWith(newIcon);
+      newIcon.setAttribute('data-lucide', iconName || 'package');
+    } else {
+      preview.setAttribute('data-lucide', iconName || 'package');
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+document.getElementById('modalIconInput')?.addEventListener('input', function() {
+  updateIconPreview(this.value.trim() || 'package');
+});
+
+// Update preview when file is selected
+document.getElementById('modalFileInput')?.addEventListener('change', function() {
+  if (this.files && this.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      updateIconPreview(e.target.result);
+    }
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+
+document.getElementById('iconModal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeIconModal();
+});
+
+async function saveIcon() {
+  const fileInput = document.getElementById('modalFileInput');
+  let icon = document.getElementById('modalIconInput').value.trim();
+  const btn = document.getElementById('saveIconBtn');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  
+  try {
+    // 1. Upload file first if selected
+    if (fileInput && fileInput.files.length > 0) {
+      const formData = new FormData();
+      formData.append('image', fileInput.files[0]);
+      
+      const uploadRes = await fetch('/admin/produk/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const uploadJson = await uploadRes.json();
+      if (!uploadJson.success) {
+        throw new Error(uploadJson.message || 'Gagal mengunggah gambar.');
+      }
+      icon = uploadJson.imageUrl;
+    }
+
+    if (!icon) return alert('Gambar / Icon tidak boleh kosong.');
+
+    // 2. Save icon path to DB
+    const res = await fetch(`/admin/produk/${currentIconProductId}/icon`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `icon=${encodeURIComponent(icon)}`
+    });
+    const json = await res.json();
+    if (json.success) {
+      // Update icon display in table
+      const iconEl = document.getElementById(`icon-${currentIconProductId}`);
+      const labelEl = document.getElementById(`iconlabel-${currentIconProductId}`);
+      const isUrl = json.icon && (json.icon.startsWith('http://') || json.icon.startsWith('https://') || json.icon.startsWith('/'));
+      
+      if (iconEl) {
+        if (isUrl) {
+          if (iconEl.tagName !== 'IMG') {
+            const newImg = document.createElement('img');
+            newImg.id = `icon-${currentIconProductId}`;
+            newImg.style.width = '1.4em';
+            newImg.style.height = '1.4em';
+            newImg.style.objectFit = 'cover';
+            newImg.style.borderRadius = '4px';
+            iconEl.replaceWith(newImg);
+            newImg.src = json.icon;
+          } else {
+            iconEl.src = json.icon;
+          }
+        } else {
+          if (iconEl.tagName !== 'I') {
+            const newIcon = document.createElement('i');
+            newIcon.id = `icon-${currentIconProductId}`;
+            newIcon.style.width = '1.4em';
+            newIcon.style.height = '1.4em';
+            newIcon.style.color = 'var(--gold)';
+            iconEl.replaceWith(newIcon);
+            newIcon.setAttribute('data-lucide', json.icon);
+          } else {
+            iconEl.setAttribute('data-lucide', json.icon);
+          }
+          if (window.lucide) lucide.createIcons();
+        }
+        if (labelEl) labelEl.textContent = json.icon;
+      }
+      closeIconModal();
+    } else {
+      alert('Gagal: ' + (json.message || 'Error server'));
+    }
+  } catch(e) { 
+    alert('Error: ' + e.message); 
+  } finally { 
+    btn.disabled = false; btn.textContent = 'Simpan Icon'; 
+  }
+}
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

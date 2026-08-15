@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <meta name="description" content="CidGrowtopia – Toko digital Growtopia terpercaya. Beli proxy, akun, currency, dan item langka dengan pengiriman otomatis.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+  <%- typeof extraHead !== 'undefined' ? extraHead : '' %>
+</head>
+<body>
+  <%- include('../partials/nav') %>
+  <main>
+    <%- body %>
+  </main>
+  <%- include('../partials/footer') %>
+  <%- typeof extraScript !== 'undefined' ? extraScript : '' %>
+</body>
+</html>

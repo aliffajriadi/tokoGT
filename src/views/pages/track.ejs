@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../partials/nav') %>
+
+  <section class="section">
+    <div class="wrap-xs">
+      <div style="margin-bottom:32px;">
+        <div class="eyebrow">Lacak Pesanan</div>
+        <h1>Cek Status & Ambil Produk</h1>
+        <p style="color:var(--text-dim); margin-top:8px; font-size:14px;">Masukkan kode invoice yang kamu terima saat checkout.</p>
+      </div>
+
+      <!-- Search Form -->
+      <form method="GET" action="/lacak" style="display:flex; gap:10px; margin-bottom:32px;">
+        <input id="invoiceInput" name="invoice" type="text" class="form-input"
+          placeholder="INV-XXXXXXXX" value="<%= invoice %>"
+          style="flex:1; font-family:var(--font-mono); letter-spacing:.05em;"
+          autocomplete="off">
+        <button class="btn btn-gold" type="submit">Lacak</button>
+      </form>
+
+      <!-- Result -->
+      <% if (invoice && !order) { %>
+        <div class="notice notice-danger" style="margin-bottom:16px;">
+          Pesanan dengan kode <b><%= invoice %></b> tidak ditemukan. Pastikan kode sudah benar.
+        </div>
+      <% } %>
+
+      <% if (order) { %>
+        <div class="panel">
+          <!-- Header -->
+          <div class="panel-head">
+            <div>
+              <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:4px;">Invoice</div>
+              <span class="invoice-code" style="font-size:15px;"><%= order.invoiceCode %></span>
+            </div>
+            <span class="status-badge <%= order.status %>"><%= order.status %></span>
+          </div>
+
+          <!-- Info -->
+          <div class="panel-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+              <div>
+                <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:4px;">Kontak</div>
+                <div style="font-size:14px;"><%= order.contact %></div>
+              </div>
+              <div>
+                <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:4px;">Total</div>
+                <div class="mono text-gold" style="font-size:15px; font-weight:700;">Rp <%= order.totalPrice.toLocaleString('id-ID') %></div>
+              </div>
+              <div>
+                <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:4px;">Tanggal</div>
+                <div style="font-size:13.5px;"><%= order.createdAt.toLocaleString('id-ID') %></div>
+              </div>
+              <% if (order.paidAt) { %>
+              <div>
+                <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:4px;">Dibayar</div>
+                <div style="font-size:13.5px;"><%= order.paidAt.toLocaleString('id-ID') %></div>
+              </div>
+              <% } %>
+            </div>
+
+            <!-- Items -->
+            <div style="margin-bottom:20px;">
+              <div style="font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin-bottom:10px;">Item Pesanan</div>
+              <% order.items.forEach(item => { %>
+                <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);">
+                  <span style="font-size:1.4rem; display:flex; align-items:center;"><i data-lucide="<%= item.product.icon || 'package' %>" style="width: 1em; height: 1em;"></i></span>
+                  <div style="flex:1;">
+                    <div style="font-size:14px; font-weight:600;"><%= item.product.name %></div>
+                    <div style="font-size:12px; color:var(--text-dim);">× <%= item.qty %></div>
+                  </div>
+                  <span class="mono" style="font-size:13px;">Rp <%= (item.priceEach * item.qty).toLocaleString('id-ID') %></span>
+                </div>
+              <% }) %>
+            </div>
+
+            <!-- Delivered Payloads -->
+            <% if (order.status === 'DELIVERED' && deliveredItems && deliveredItems.length > 0) { %>
+              <div style="background:var(--success-bg); border:1px solid var(--success); border-radius:var(--radius-sm); padding:16px;">
+                <div style="font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--success); font-weight:700; margin-bottom:12px;">
+                  ✅ Produk Kamu
+                </div>
+                <% deliveredItems.forEach(item => { %>
+                  <div style="margin-bottom:12px;">
+                    <div style="font-size:13px; font-weight:600; margin-bottom:6px; display:flex; align-items:center; gap:6px;"><i data-lucide="<%= item.icon || 'package' %>" style="width: 14px; height: 14px;"></i> <%= item.productName %></div>
+                    <% item.payloads.forEach(payload => { %>
+                      <div style="background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:9px 12px; font-family:var(--font-mono); font-size:12.5px; color:var(--gem); margin-bottom:4px; word-break:break-all;">
+                        <%= payload %>
+                      </div>
+                    <% }) %>
+                  </div>
+                <% }) %>
+                <div class="notice notice-gold" style="margin-top:8px; font-size:12px;">
+                  <b>Simpan data di atas!</b> Setelah tutup halaman ini, kamu bisa ambil lagi dengan lacak ulang kode invoice.
+                </div>
+              </div>
+            <% } else if (order.status === 'PENDING') { %>
+              <div class="notice notice-gold">
+                <b>Menunggu pembayaran.</b> Selesaikan pembayaran QRIS untuk menerima produkmu.
+                <a href="/checkout?invoice=<%= order.invoiceCode %>" style="color:var(--gold); text-decoration:underline; margin-left:8px;">Lanjut Bayar →</a>
+              </div>
+            <% } else if (order.status === 'EXPIRED') { %>
+              <div class="notice notice-danger">Pesanan ini sudah kadaluarsa. Buat pesanan baru di halaman produk.</div>
+            <% } else if (order.status === 'FAILED') { %>
+              <div class="notice notice-danger">Pembayaran gagal. Silakan coba lagi.</div>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Go shopping -->
+      <% if (!invoice || !order) { %>
+        <div style="text-align:center; margin-top:40px;">
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Belum punya kode invoice?</p>
+          <a href="/produk" class="btn btn-ghost">Lihat Produk →</a>
+        </div>
+      <% } %>
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>
