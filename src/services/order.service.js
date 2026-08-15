@@ -89,16 +89,32 @@ async function saveQrisToOrder(id, qrisPayload, providerRef, platformFee, totalA
  * Dipanggil oleh setInterval di app.js.
  */
 async function expireStaleOrders() {
-  const result = await prisma.order.updateMany({
+  const staleOrders = await prisma.order.findMany({
     where: {
       status: 'PENDING',
       expiresAt: { lt: new Date() },
     },
-    data: { status: 'EXPIRED' },
   });
-  if (result.count > 0) {
-    logger.info(`[order.service] Expired ${result.count} stale order(s).`);
+
+  if (staleOrders.length === 0) return;
+
+  const paymentService = require('./payment.service');
+
+  for (const order of staleOrders) {
+    try {
+      logger.info(`[order.service] Order ${order.invoiceCode} expired. Calling payment provider to cancel.`);
+      await paymentService.cancelInvoice(order.invoiceCode);
+    } catch (err) {
+      logger.error(`[order.service] Gagal membatalkan invoice ${order.invoiceCode} di provider:`, err.message);
+    }
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { status: 'EXPIRED' },
+    });
   }
+
+  logger.info(`[order.service] Expired ${staleOrders.length} stale order(s).`);
 }
 
 /**

@@ -48,4 +48,20 @@ function verifyWebhookSignature(rawBody, headers) {
   return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'));
 }
 
-module.exports = { generateQris, verifyWebhookSignature };
+/**
+ * Batalkan invoice di payment provider (Pakasir-compatible).
+ */
+async function cancelInvoice(invoiceCode) {
+  const res = await fetch(`${env.payment.baseUrl}/invoices/${invoiceCode}/cancel`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': env.payment.apiKey,
+    },
+  });
+
+  const json = await res.json();
+  return json;
+}
+
+module.exports = { generateQris, verifyWebhookSignature, cancelInvoice };
