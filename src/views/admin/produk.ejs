@@ -25,6 +25,9 @@
     <% if (success) { %>
       <div class="notice notice-gem" style="margin-bottom:20px;"><b>✅ <%= success.replace(/-/g,' ') %></b></div>
     <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="notice notice-danger" style="margin-bottom:20px;"><b>❌ <%= error.replace(/-/g,' ') %></b></div>
+    <% } %>
 
     <!-- Add Product Form -->
     <div class="panel" style="margin-bottom:24px;">
@@ -99,21 +102,30 @@
               </td>
               <td class="row-actions" style="white-space:nowrap;">
                 <button onclick="toggleStatus(<%= p.id %>, this)"
-                  data-active="<%= p.isActive %>"
-                  style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer;">
-                  <%= p.isActive ? 'Nonaktifkan' : 'Aktifkan' %>
-                </button>
-                <button onclick="toggleFeatured(<%= p.id %>, this)"
-                  data-featured="<%= p.isFeatured %>"
-                  style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer; margin-top:4px;">
-                  <%= p.isFeatured ? 'Batal Unggulan' : 'Jadikan Unggulan' %>
-                </button>
-                <button onclick="openIconModal(<%= p.id %>, '<%= (p.icon || 'package').replace(/'/g, '') %>')"
-                  style="background:var(--surface-2); border:1px solid var(--gem); color:var(--gem); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer; margin-top:4px;">
-                  ✏️ Edit Icon
-                </button>
-              </td>
-            </tr>
+                   data-active="<%= p.isActive %>"
+                   style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer;">
+                   <%= p.isActive ? 'Nonaktifkan' : 'Aktifkan' %>
+                 </button>
+                 <button onclick="toggleFeatured(<%= p.id %>, this)"
+                   data-featured="<%= p.isFeatured %>"
+                   style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer; margin-top:4px;">
+                   <%= p.isFeatured ? 'Batal Unggulan' : 'Jadikan Unggulan' %>
+                 </button>
+                 <button onclick="openIconModal(<%= p.id %>, '<%= (p.icon || 'package').replace(/'/g, '') %>')"
+                   style="background:var(--surface-2); border:1px solid var(--gem); color:var(--gem); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer; margin-top:4px;">
+                   🖼️ Edit Icon
+                 </button>
+                 <button onclick='openEditModal(<%- JSON.stringify(p).replace(/'/g, "&#39;") %>)'
+                   style="background:var(--surface-2); border:1px solid var(--gold); color:var(--gold); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer; margin-top:4px;">
+                   ✏️ Edit Detail
+                 </button>
+                 <form action="/admin/produk/<%= p.id %>/delete" method="POST" style="display:inline-block; margin-top:4px;" onsubmit="return confirm('Yakin ingin menghapus produk ini? Semua data stok produk ini juga akan terhapus.');">
+                   <button type="submit" style="background:var(--surface-2); border:1px solid var(--danger); color:var(--danger); font-size:11.5px; padding:6px 10px; border-radius:6px; cursor:pointer;">
+                     🗑️ Hapus
+                   </button>
+                 </form>
+               </td>
+             </tr>
           <% }) %>
         </tbody>
       </table>
@@ -149,8 +161,56 @@
   </div>
 </div>
 
+<!-- Edit Product Modal -->
+<div id="editModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999; align-items:center; justify-content:center;">
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:28px; width:500px; max-width:90vw; position:relative;">
+    <div style="font-family:var(--font-heading); font-size:14px; font-weight:700; margin-bottom:16px; color:var(--gold);">✏️ Edit Detail Produk</div>
+    
+    <form id="editForm" action="" method="POST" style="display:grid; grid-template-columns:1fr; gap:16px;">
+      <div class="form-group">
+        <label class="form-label" for="editName">Nama Produk *</label>
+        <input id="editName" name="name" type="text" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editCategory">Kategori *</label>
+        <input id="editCategory" name="category" type="text" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editPrice">Harga (Rp) *</label>
+        <input id="editPrice" name="price" type="number" class="form-input" min="1" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editIcon">Icon (lucide / URL)</label>
+        <input id="editIcon" name="icon" type="text" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editDescription">Deskripsi</label>
+        <textarea id="editDescription" name="description" class="form-textarea" placeholder="Keterangan produk..."></textarea>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px;">
+        <button type="button" onclick="closeEditModal()" style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); padding:8px 16px; border-radius:6px; cursor:pointer; font-size:13px;">Batal</button>
+        <button type="submit" class="btn btn-gold">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 let currentIconProductId = null;
+
+function openEditModal(product) {
+  document.getElementById('editForm').action = `/admin/produk/${product.id}/edit`;
+  document.getElementById('editName').value = product.name;
+  document.getElementById('editCategory').value = product.category;
+  document.getElementById('editPrice').value = product.price;
+  document.getElementById('editIcon').value = product.icon || '';
+  document.getElementById('editDescription').value = product.description || '';
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
 
 // Toggle active status
 async function toggleStatus(id, btn) {

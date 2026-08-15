@@ -106,6 +106,7 @@ async function produk(req, res, next) {
       products,
       activePage: 'produk',
       success: req.query.success || null,
+      error: req.query.error || null,
     });
   } catch (err) {
     next(err);
@@ -128,6 +129,41 @@ async function tambahProduk(req, res, next) {
     logger.info(`[admin] Produk baru: ${name}`);
     res.redirect('/admin/produk?success=produk-ditambahkan');
   } catch (err) {
+    next(err);
+  }
+}
+
+async function editProduk(req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { name, category, price, description, icon } = req.body;
+    if (!name || !category || !price) {
+      return res.redirect('/admin/produk?error=data-tidak-lengkap');
+    }
+    await productService.updateProduct(id, {
+      name: name.trim(),
+      category: category.trim(),
+      price: parseInt(price, 10),
+      description: description?.trim() || null,
+      icon: icon?.trim() || null,
+    });
+    logger.info(`[admin] Edit produk ID ${id}: ${name}`);
+    res.redirect('/admin/produk?success=produk-diupdate');
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function deleteProduk(req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    await productService.deleteProduct(id);
+    logger.info(`[admin] Hapus produk ID ${id}`);
+    res.redirect('/admin/produk?success=produk-dihapus');
+  } catch (err) {
+    if (err.code === 'P2003') {
+      return res.redirect('/admin/produk?error=riwayat-order-ada');
+    }
     next(err);
   }
 }
@@ -343,6 +379,8 @@ module.exports = {
   pesanan,
   produk,
   tambahProduk,
+  editProduk,
+  deleteProduk,
   toggleProdukStatus,
   toggleFeaturedProduct,
   updateProdukIcon,

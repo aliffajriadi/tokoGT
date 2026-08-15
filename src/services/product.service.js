@@ -122,6 +122,11 @@ async function updateProduct(id, data) {
   return prisma.product.update({ where: { id }, data });
 }
 
+async function deleteProduct(id) {
+  await prisma.stock.deleteMany({ where: { productId: id } });
+  return prisma.product.delete({ where: { id } });
+}
+
 /**
  * Tambah stok ke produk (admin restock). payloads = array of string.
  */
@@ -189,6 +194,7 @@ module.exports = {
   listAllProductsAdmin,
   createProduct,
   updateProduct,
+  deleteProduct,
   addStock,
   getStockSummaryAdmin,
   toggleFeaturedProduct,

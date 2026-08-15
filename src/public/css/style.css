@@ -547,11 +547,15 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   .featured-card { flex: 1 1 auto; width: 100%; }
 }
 @media (max-width: 600px) {
+  .featured-products-container {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
   .featured-card {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    width: 100%;
+    width: 100% !important;
   }
   .featured-card .feat-info { width: 100%; }
   .featured-card .feat-icon { width: 72px; height: 72px; }

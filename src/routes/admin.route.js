@@ -34,6 +34,8 @@ router.get('/pesanan', ctrl.pesanan);
 
 router.get('/produk', ctrl.produk);
 router.post('/produk', express.urlencoded({ extended: false }), ctrl.tambahProduk);
+router.post('/produk/:id/edit', express.urlencoded({ extended: false }), ctrl.editProduk);
+router.post('/produk/:id/delete', ctrl.deleteProduk);
 router.post('/produk/:id/toggle', ctrl.toggleProdukStatus);
 router.post('/produk/:id/feature', ctrl.toggleFeaturedProduct);
 router.post('/produk/:id/icon', express.urlencoded({ extended: false }), ctrl.updateProdukIcon);
