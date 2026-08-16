@@ -82,6 +82,12 @@
             <div style="font-size:12.5px; color:var(--text-dim); margin-bottom:8px;">Status Pembayaran</div>
             <span class="status-badge PENDING" id="orderStatus">Menunggu Pembayaran</span>
           </div>
+          
+          <div style="margin-top:20px; border-top: 1px solid var(--border); padding-top: 16px;">
+            <button id="cancelBtn" class="btn btn-ghost w-full" style="color:var(--text-dim); border: 1px solid var(--border); background: transparent;" onclick="cancelCurrentOrder()">
+              Batalkan Pesanan
+            </button>
+          </div>
         </div>
 
         <!-- Tips -->
@@ -129,6 +135,29 @@
       expiresAt: '<%= order.expiresAt.toISOString() %>',
       productName: '<%= order.items.map(i => i.product.name).join(", ").replace(/'/g, "\\'") %>',
     });
+
+    async function cancelCurrentOrder() {
+      if (!confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) return;
+      const btn = document.getElementById('cancelBtn');
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Membatalkan...';
+        const res = await fetch(`/order/<%= order.invoiceCode %>/cancel`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          alert('Pesanan berhasil dibatalkan.');
+          window.location.reload();
+        } else {
+          alert('Gagal membatalkan pesanan: ' + (data.message || 'Error'));
+          btn.disabled = false;
+          btn.textContent = 'Batalkan Pesanan';
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan koneksi.');
+        btn.disabled = false;
+        btn.textContent = 'Batalkan Pesanan';
+      }
+    }
   </script>
   <% } %>
 </body>

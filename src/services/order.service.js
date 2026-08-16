@@ -103,7 +103,7 @@ async function expireStaleOrders() {
   for (const order of staleOrders) {
     try {
       logger.info(`[order.service] Order ${order.invoiceCode} expired. Calling payment provider to cancel.`);
-      await paymentService.cancelInvoice(order.invoiceCode);
+      await paymentService.cancelInvoice(order.providerRef || order.invoiceCode);
     } catch (err) {
       logger.error(`[order.service] Gagal membatalkan invoice ${order.invoiceCode} di provider:`, err.message);
     }

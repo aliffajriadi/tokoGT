@@ -154,4 +154,33 @@ async function getOrderStatus(req, res) {
   }
 }
 
-module.exports = { createOrder, getOrderStatus };
+async function cancelOrder(req, res) {
+  try {
+    const { invoiceCode } = req.params;
+    const order = await orderService.getOrderByInvoiceCode(invoiceCode.toUpperCase());
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan.' });
+    }
+    if (order.status !== 'PENDING') {
+      return res.status(400).json({ success: false, message: 'Hanya pesanan pending yang dapat dibatalkan.' });
+    }
+
+    // Panggil payment gateway untuk cancel invoice
+    try {
+      await paymentService.cancelInvoice(order.providerRef || order.invoiceCode);
+    } catch (payErr) {
+      logger.error(`[order.controller] Gagal membatalkan invoice ${order.invoiceCode} di payment gateway:`, payErr.message);
+    }
+
+    // Update status order ke FAILED di database kita
+    await orderService.updateOrderStatus(order.id, 'FAILED');
+
+    logger.info(`[order.controller] Order ${order.invoiceCode} berhasil dibatalkan oleh pengguna.`);
+    return res.json({ success: true, message: 'Pesanan berhasil dibatalkan.' });
+  } catch (err) {
+    logger.error('[order.controller] cancelOrder error:', err);
+    return res.status(500).json({ success: false, message: 'Gagal membatalkan pesanan.' });
+  }
+}
+
+module.exports = { createOrder, getOrderStatus, cancelOrder };

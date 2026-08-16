@@ -6,5 +6,6 @@ const ctrl = require('../controllers/order.controller');
 
 router.post('/checkout', ctrl.createOrder);
 router.get('/order/:invoiceCode/status', ctrl.getOrderStatus);
+router.post('/order/:invoiceCode/cancel', ctrl.cancelOrder);
 
 module.exports = router;
