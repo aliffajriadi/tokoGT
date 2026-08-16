@@ -1,4 +1,14 @@
-<aside class="sidebar">
+<div class="mobile-nav-bar">
+  <button id="sidebarToggle" class="mobile-menu-btn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+  </button>
+  <div class="logo" style="margin: 0; padding: 0;">Cid<b>Growtopia</b></div>
+  <div style="width: 36px;"></div>
+</div>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<aside class="sidebar" id="adminSidebar">
   <div class="logo"><div class="logo-mark"><span></span><span></span><span></span><span></span></div>Cid<b>Growtopia</b></div>
   <div class="nav-group">
     <div class="nav-label">Utama</div>
@@ -30,3 +40,23 @@
     </form>
   </div>
 </aside>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('adminSidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    if (toggleBtn && sidebar && backdrop) {
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.add('show');
+        backdrop.classList.add('show');
+      });
+
+      backdrop.addEventListener('click', () => {
+        sidebar.classList.remove('show');
+        backdrop.classList.remove('show');
+      });
+    }
+  });
+</script>
