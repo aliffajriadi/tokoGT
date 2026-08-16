@@ -13,11 +13,9 @@ const env = require('../config/env');
  * Signature diverifikasi dari raw body sebelum parse.
  */
 async function handlePaymentWebhook(req, res) {
-  // Balas 200 cepat biar tidak timeout provider (< 10 detik)
-  // Namun kita tetap proses synchronous karena SQLite ringan — sesuai PRD §6
+  // Log request info
+  logger.info(`[webhook] Request webhook masuk. Query: ${JSON.stringify(req.query)}`);
 
-  // 0. Proteksi API Key via query param (jika dikonfigurasi)
-  // 0. Proteksi API Key via query param (jika dikonfigurasi)
   const webhookApiKey = env.payment.webhookApiKey || env.payment.webhookSecret;
   if (webhookApiKey && req.query.apikey !== webhookApiKey) {
     logger.warn(`[webhook] Akses ditolak: apikey tidak valid atau tidak ada (${req.query.apikey}).`);
@@ -26,6 +24,9 @@ async function handlePaymentWebhook(req, res) {
 
   const rawBody = req.body; // Buffer dari express.raw()
   const rawString = rawBody.toString('utf-8');
+  
+  // Log raw body payload
+  logger.info(`[webhook] Payload body webhook: ${rawString}`);
 
   // 1. Verifikasi signature (Lewati jika apikey valid digunakan)
   const isApiKeyValid = webhookApiKey && req.query.apikey === webhookApiKey;
